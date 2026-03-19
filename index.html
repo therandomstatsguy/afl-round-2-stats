@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSG AFL Dashboard - Round 2, 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+:root{--bg0:#070b10;--bg1:#0d1117;--bg2:#141b24;--bg3:#1a2332;--acc:#00d4a0;--acc2:#00a67d;--accB:#00ffaa;--grn:#22c55e;--ylw:#eab308;--red:#ef4444;--t1:#e8eaed;--t2:#8b95a5;--t3:#5c6878;--brd:#1e2a36;--brdA:rgba(0,212,160,0.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg0);color:var(--t1);min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--acc2);border-radius:3px}
+.hdr{background:linear-gradient(135deg,var(--bg1),#0a1520);border-bottom:1px solid var(--brd);padding:14px 20px;position:sticky;top:0;z-index:100}
+.hdr-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.logo-t{font-size:28px;font-weight:900;letter-spacing:2px;background:linear-gradient(135deg,#00ffaa,#00d4a0,#0088ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-s{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase}
+.gsel{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.gbtn{background:var(--bg2);border:1px solid var(--brd);color:var(--t2);padding:5px 10px;border-radius:7px;cursor:pointer;font-size:10px;font-weight:500;transition:all .2s;font-family:inherit;white-space:nowrap}
+.gbtn:hover{border-color:var(--acc2);color:var(--t1)}.gbtn.on{background:linear-gradient(135deg,rgba(0,212,160,.15),rgba(0,136,255,.1));border-color:var(--acc);color:var(--accB);box-shadow:0 0 10px rgba(0,212,160,.2)}
+.ctr{max-width:1400px;margin:0 auto;padding:18px 20px}
+.sec{margin-bottom:24px}
+.stit{font-size:12px;font-weight:700;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.stit::before{content:'';display:inline-block;width:3px;height:14px;background:var(--acc);border-radius:2px}
+.arr{font-size:8px;margin-left:auto;color:var(--t3);transition:transform .2s}.arr.open{transform:rotate(180deg)}
+.tg{display:flex;gap:3px;background:var(--bg1);border:1px solid var(--brd);border-radius:7px;padding:2px;flex-wrap:wrap}
+.tb{background:transparent;border:none;color:var(--t3);padding:4px 10px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:500;transition:all .2s;font-family:inherit;white-space:nowrap}
+.tb:hover{color:var(--t2)}.tb.on{background:var(--acc);color:#000;font-weight:700}
+.cr{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.cl{font-size:10px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.ts-grid{display:flex;flex-direction:column;gap:4px}
+.ts-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:5px 10px;border-radius:8px;border:1px solid rgba(30,42,54,.4);transition:background .2s}
+.ts-val{font-size:14px;font-weight:700;min-width:50px}
+.ts-val.l{text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.ts-val.r{text-align:left;display:flex;align-items:center;gap:8px}
+.ts-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:600;text-align:center;min-width:120px;white-space:nowrap}
+.ts-bar{height:6px;border-radius:3px;transition:width .4s ease}
+.ts-bar-wrap{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.05);overflow:hidden;min-width:40px}
+.ts-bar-wrap.l{display:flex;justify-content:flex-end}
+.ts-hdr{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;padding:4px 10px;margin-bottom:4px}
+.ts-tn{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.ts-tn.l{text-align:right}.ts-tn.r{text-align:left}.ts-tn.c{text-align:center;color:var(--t3);font-weight:400;font-size:10px}
+.gl-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.gl-col-hdr{font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase}
+.gl-wrap{max-height:320px;overflow-y:auto;overflow-x:auto;border:1px solid var(--brd);border-radius:8px}
+.gl-tbl{width:100%;border-collapse:collapse;font-size:10px}
+.gl-tbl th{text-align:left;padding:4px 6px;color:var(--t3);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd);position:sticky;top:0;background:var(--bg1);z-index:1}
+.gl-tbl td{padding:4px 6px;color:var(--t2);border-bottom:1px solid rgba(30,42,54,.3)}
+.gl-tbl tr:hover td{background:rgba(0,212,160,.02)}
+.gml{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 0 4px}
+.gmv{font-size:11px;color:var(--t3);font-weight:600}
+.gvn{text-align:center;font-size:10px;color:var(--t3);margin-bottom:14px}
+.ftr{text-align:center;padding:20px;font-size:10px;color:var(--t3);border-top:1px solid var(--brd);margin-top:32px}
+.form-dots{display:flex;gap:3px;justify-content:center;margin-top:4px}
+.form-dot{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff}
+.streak-card{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:10px;cursor:pointer;min-width:180px;max-width:300px;flex:0 0 auto;transition:all 0.2s}
+.streak-card:hover{border-color:var(--acc2)}
+.odds-row{display:flex;justify-content:center;gap:16px;margin-bottom:12px;font-size:11px;color:var(--t2);flex-wrap:wrap;align-items:center}
+.odds-row .od-item{display:flex;align-items:center;gap:4px}
+.odds-row .od-val{font-weight:700;color:var(--acc)}
+.tbadge{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;display:inline-block}
+.gl-score{font-size:10px;opacity:1}
+.tab-main{display:flex;gap:3px;background:var(--bg1);border:1px solid var(--brd);border-radius:7px;padding:2px;margin-bottom:16px;justify-content:center;max-width:300px;margin-left:auto;margin-right:auto}
+.mc{display:flex;flex-direction:column;gap:2px}
+.mr{display:grid;grid-template-columns:1fr 48px 1fr;gap:4px;margin-bottom:2px}
+.mh{display:grid;grid-template-columns:1fr 48px 1fr;gap:4px;margin-bottom:6px;padding:4px 0}
+.mht{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:4px 8px;border-radius:6px;text-align:center}
+.mhv{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--t3)}
+.mp{display:flex;align-items:center;justify-content:center}
+.mpb{background:var(--acc);color:#000;border-radius:5px;padding:2px 6px;font-size:8px;font-weight:700;letter-spacing:.3px;text-align:center}
+.bs{text-align:center;margin:8px 0 4px;font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:1px}
+.player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:12px}
+.player-tile{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;overflow:hidden;transition:all .2s}
+.player-tile:hover{border-color:var(--acc2)}
+.player-tile-header{padding:10px;background:var(--bg3);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:11px}
+.player-tile-header:hover{background:rgba(0,212,160,.1)}
+.player-tile-content{padding:10px;display:flex;flex-direction:column;gap:8px}
+.strike-bar-item{display:flex;flex-direction:column;gap:3px}
+.strike-bar-label{font-size:9px;font-weight:600;color:var(--t2)}
+.strike-bar{display:flex;align-items:center;gap:4px;height:20px}
+.strike-bar-fill{background:var(--acc);border-radius:3px;height:100%;min-width:20px;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-size:8px;font-weight:700;color:#000}
+.strike-bar-bg{flex:1;background:rgba(255,255,255,.05);border-radius:3px;height:100%;margin-left:4px}
+.strike-bar-odds{font-size:9px;color:var(--acc);font-weight:700;min-width:40px;text-align:right}
+.pos-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:700;background:rgba(0,212,160,.2);color:var(--acc);text-transform:uppercase}
+.pc{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:6px 8px;cursor:pointer;transition:all .15s}
+.pc:hover{border-color:var(--acc)}
+.pc.exp{border-color:var(--acc);background:var(--bg1)}
+.pc.rt{text-align:right}
+.pi{display:flex;align-items:center;gap:6px}
+.pc.rt .pi{flex-direction:row-reverse}
+.pn-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0}
+.pname{font-size:10px;font-weight:700;line-height:1.2}
+.ppos{font-size:8px;color:var(--t3)}
+.psr{margin-left:auto;text-align:right;flex-shrink:0}
+.pc.rt .psr{margin-left:0;margin-right:auto;text-align:left}
+.psr-val{font-size:14px;font-weight:800;line-height:1}
+.psr-lbl{font-size:7px;color:var(--t3);text-transform:uppercase}
+.pd{background:var(--bg1);border:1px solid var(--brd);border-radius:8px;padding:8px;margin-bottom:4px}
+@media(max-width:600px){.mr,.mh{grid-template-columns:1fr 28px 1fr;gap:2px}.pc{padding:4px 5px}.pname{font-size:9px}.psr-val{font-size:12px}.gl-split{grid-template-columns:1fr;gap:16px}}
+.field-player-card{background:var(--bg2);border:1px solid var(--brd);border-radius:6px;padding:6px;font-size:9px}
+.field-player-name{font-weight:700;color:var(--t1);margin-bottom:2px}
+.field-player-stat{font-size:8px;color:var(--acc)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="data.js"></script>
+<script type="text/babel">
+const {useState, useMemo, useCallback} = React;
+
+const D = {
+  results: RAW_RESULTS.map(r => ({
+    y:r[0],rd:r[1],t1:r[2],t2:r[3],
+    hq1:r[4],hq2:r[5],hq3:r[6],hft:r[7],
+    aq1:r[8],aq2:r[9],aq3:r[10],aft:r[11],
+    v:r[12],fav:r[13],fl:r[14],pl:r[15],
+    cond:r[16],tod:r[17],dow:r[18],time:r[19],ds:r[20]||0
+  })),
+  orGames: OR_GAMES,
+  odds: ODDS,
+  playerData: PLAYER_DATA,
+  playerOdds: PLAYER_ODDS,
+  teamList: TEAM_LIST,
+  oddsPlayers: ODDS_PLAYERS,
+};
+
+function getScores(g, team, qMode) {
+  const isH = g.t1===team;
+  if(qMode==='total') return {scored:isH?g.hft:g.aft, conceded:isH?g.aft:g.hft, total:g.hft+g.aft};
+  const hS=[g.hq1, g.hq2-g.hq1, g.hq3-g.hq2, g.hft-g.hq3];
+  const aS=[g.aq1, g.aq2-g.aq1, g.aq3-g.aq2, g.aft-g.aq3];
+  const qi={'q1':0,'q2':1,'q3':2,'q4':3}[qMode];
+  const scored=isH?hS[qi]:aS[qi], conceded=isH?aS[qi]:hS[qi];
+  return {scored, conceded, total:scored+conceded};
+}
+
+function getEffectiveOdds(oddsData, qMode) {
+  if (!oddsData) return {line: 0, ptsLine: 0};
+  if (qMode === 'total') return {line: oddsData.spread, ptsLine: oddsData.total};
+  return {
+    line: oddsData['spread_' + qMode] || 0,
+    ptsLine: oddsData['total_' + qMode] || 0
+  };
+}
+
+function computeTeamStats(team, games, line, ptsLine, qMode) {
+  const n=games.length;
+  if(!n) return {games:0,winPct:0,linePct:null,ptsPct:null,w40:0,w139:0,l139:0,l40:0,ppg:'0.0',pcpg:'0.0'};
+  let wins=0,losses=0,draws=0,w40=0,w139=0,l139=0,l40=0,pf=0,pa=0,lineCov=0,ptsOver=0;
+  games.forEach(g=>{
+    const s=getScores(g,team,qMode);
+    const m=s.scored-s.conceded;
+    pf+=s.scored;pa+=s.conceded;
+    if(m>0){wins++;if(m>=40)w40++;else w139++;}
+    else if(m<0){losses++;if(Math.abs(m)>=40)l40++;else l139++;}
+    else draws++;
+    if(line>0){
+      const isFav=g.fav===team;
+      if(qMode==='total'){
+        if(isFav){if(m>line)lineCov++;}else{if(m>-line)lineCov++;}
+      } else {
+        if(isFav){if(m>line)lineCov++;}else{if(m>-line)lineCov++;}
+      }
+    }
+    if(ptsLine>0&&s.total>ptsLine)ptsOver++;
+  });
+  return {
+    games:n,winPct:Math.round(wins/n*100),drawPct:Math.round(draws/n*100),
+    linePct:line>0?Math.round(lineCov/n*100):null,
+    ptsPct:ptsLine>0?Math.round(ptsOver/n*100):null,
+    w40:Math.round(w40/n*100),w139:Math.round(w139/n*100),
+    l139:Math.round(l139/n*100),l40:Math.round(l40/n*100),
+    ppg:(pf/n).toFixed(1),pcpg:(pa/n).toFixed(1)
+  };
+}
+
+function StatRow({label, valA, valB, suffix="", isCount=false, inverse=false}) {
+  const nA=parseFloat(valA)||0, nB=parseFloat(valB)||0;
+  const max=Math.max(nA,nB,0.1);
+  const barA=isCount?(nA/max*100):Math.min(nA,100);
+  const barB=isCount?(nB/max*100):Math.min(nB,100);
+  const dA=valA===null?"N/A":valA+suffix;
+  const dB=valB===null?"N/A":valB+suffix;
+  let aW=false,bW=false;
+  if(valA!==null&&valB!==null){
+    if(inverse){if(nA>nB)aW=true;else if(nB>nA)bW=true;else{aW=true;bW=true;}}
+    else{if(nA>nB)aW=true;else if(nB>nA)bW=true;else{aW=true;bW=true;}}
+  }
+  const grnC='#00ffaa',dkW='#ddd';
+  return (
+    <div className="ts-row" style={{background:aW||bW?`linear-gradient(90deg,${aW?'rgba(0,255,170,0.08)':'transparent'},var(--bg2) 40%,var(--bg2) 60%,${bW?'rgba(0,255,170,0.08)':'transparent'})`:'var(--bg2)'}}>
+      <div className="ts-val l">
+        <span style={{color:aW?grnC:dkW,fontWeight:aW?800:700}}>{dA}</span>
+        <div className="ts-bar-wrap l"><div className="ts-bar" style={{width:(valA===null?0:barA)+'%',background:aW?grnC:'var(--t3)',opacity:aW?0.9:0.4}}/></div>
+      </div>
+      <div className="ts-lbl">{label}</div>
+      <div className="ts-val r">
+        <div className="ts-bar-wrap"><div className="ts-bar" style={{width:(valB===null?0:barB)+'%',background:bW?grnC:'var(--t3)',opacity:bW?0.9:0.4}}/></div>
+        <span style={{color:bW?grnC:dkW,fontWeight:bW?800:700}}>{dB}</span>
+      </div>
+    </div>
+  );
+}
+
+function GLRow({g, team, line, ptsLine, qMode}) {
+  const isH=g.t1===team;
+  const s=getScores(g,team,qMode);
+  const m=s.scored-s.conceded;
+  const opp=isH?g.t2:g.t1;
+  const res=m>0?'W':m<0?'L':'D';
+  const resC=res==='W'?'#22c55e':res==='L'?'#ef4444':'#eab308';
+  let mC='var(--t1)';
+  if(line>0){
+    const isFav=g.fav===team;
+    const cov=(isFav&&m>line)||(!isFav&&m>-line);
+    mC=cov?'#22c55e':'#ef4444';
+  }
+  const pC=(ptsLine>0&&s.total>ptsLine)?'#22c55e':(ptsLine>0?'#ef4444':'var(--t1)');
+  const os=TEAM_STYLES[opp];
+  const oa=ABBREV[opp]||opp.substring(0,3);
+  return (
+    <tr>
+      <td>{g.y}</td>
+      <td>{g.rd}</td>
+      <td><span className="tbadge" style={{background:os?os.bg:'#333',color:os?os.txt:'#fff'}}>{oa}</span></td>
+      <td style={{color:resC,fontWeight:700}}>{res} <span className="gl-score">{s.scored}-{s.conceded}</span></td>
+      <td>{g.v||'-'}</td>
+      <td style={{color:mC,fontWeight:600}}>{m>0?'+'+m:m}</td>
+      <td style={{color:pC,fontWeight:600}}>{s.total}</td>
+    </tr>
+  );
+}
+
+function FormDots({team}) {
+  const form=useMemo(()=>{
+    const tg=D.results.filter(r=>r.t1===team||r.t2===team);
+    return tg.slice(-5).map(g=>{
+      const isH=g.t1===team;
+      const sc=isH?g.hft:g.aft, co=isH?g.aft:g.hft;
+      return sc>co?'W':sc<co?'L':'D';
+    });
+  },[team]);
+  const cm={W:'#22c55e',L:'#ef4444',D:'#eab308'};
+  return (
+    <div className="form-dots">
+      {form.map((r,i)=>(<div key={i} className="form-dot" style={{background:cm[r]||'#555'}}>{r}</div>))}
+    </div>
+  );
+}
+
+function Streaks({game, oddsData, mainTab}) {
+  const [openTeam,setOpenTeam]=useState(true);
+  const [openPlayer,setOpenPlayer]=useState(true);
+  const [expSet,setExpSet]=useState({});
+
+  const {teamStreaks, playerStreaks} = useMemo(()=>{
+    const tItems=[], pItems=[];
+    const tA=game.home,tB=game.away;
+    const lh=oddsData?oddsData.spread:0;
+    const ph=oddsData?oddsData.total:0;
+    const venUp=(game.venueShort||'').toUpperCase();
+
+    function activeStreak(arr,fn){let c=0;for(let i=0;i<arr.length;i++){if(fn(arr[i]))c++;else break;}return c;}
+    const sortD=(arr)=>[...arr].sort((a,b)=>(b.ds||0)-(a.ds||0));
+
+    [tA,tB].forEach(team=>{
+      const tg=sortD(D.results.filter(r=>r.t1===team||r.t2===team));
+      const abbr=ABBREV[team]||team;
+      const ts=TEAM_STYLES[team]||{};
+      function tr(g){
+        const isH=g.t1===team;
+        const sc=isH?g.hft:g.aft,co=isH?g.aft:g.hft;
+        return{scored:sc,conc:co,margin:sc-co,tp:sc+co,isWin:sc>co,isLoss:sc<co,isFav:g.fav===team};
+      }
+      const allR=tg.map(g=>({...g,...tr(g)}));
+      const ctxs=[
+        {label:'All Games',games:allR},
+        {label:'H2H',games:sortD(D.results.filter(r=>(r.t1===tA&&r.t2===tB)||(r.t1===tB&&r.t2===tA))).map(g=>({...g,...tr(g)}))},
+        {label:'As Favourite',games:allR.filter(g=>g.isFav)},
+        {label:'As Underdog',games:allR.filter(g=>!g.isFav&&g.fav)},
+        ...(venUp?[{label:'At '+game.venueShort,games:tg.filter(r=>r.v&&r.v.toUpperCase()===venUp).map(g=>({...g,...tr(g)}))}]:[]),
+      ];
+      ctxs.forEach(ctx=>{
+        const minS=5;
+        if(ctx.games.length<minS)return;
+        const ws=activeStreak(ctx.games,g=>g.isWin);
+        if(ws>=minS) tItems.push({team:abbr,teamKey:team,streak:ws,desc:`Win streak (${ctx.label})`,games:ctx.games.slice(0,ws),color:'#22c55e'});
+        const ls=activeStreak(ctx.games,g=>g.isLoss);
+        if(ls>=minS) tItems.push({team:abbr,teamKey:team,streak:ls,desc:`Losing streak (${ctx.label})`,games:ctx.games.slice(0,ls),color:'#ef4444'});
+        if(lh>0){
+          const lcs=activeStreak(ctx.games,g=>{const iF=g.fav===team;return(iF&&g.margin>lh)||(!iF&&g.margin>-lh);});
+          if(lcs>=minS) tItems.push({team:abbr,teamKey:team,streak:lcs,desc:`Line cover streak (${ctx.label})`,games:ctx.games.slice(0,lcs),color:'#22c55e',stype:'line'});
+          const lfs=activeStreak(ctx.games,g=>{const iF=g.fav===team;return!((iF&&g.margin>lh)||(!iF&&g.margin>-lh));});
+          if(lfs>=minS) tItems.push({team:abbr,teamKey:team,streak:lfs,desc:`Line fail streak (${ctx.label})`,games:ctx.games.slice(0,lfs),color:'#ef4444',stype:'line'});
+        }
+        if(ph>0){
+          const pos=activeStreak(ctx.games,g=>g.tp>ph);
+          if(pos>=minS) tItems.push({team:abbr,teamKey:team,streak:pos,desc:`Pts over streak (${ctx.label})`,games:ctx.games.slice(0,pos),color:'#22c55e',stype:'total'});
+          const pus=activeStreak(ctx.games,g=>g.tp<=ph);
+          if(pus>=minS) tItems.push({team:abbr,teamKey:team,streak:pus,desc:`Pts under streak (${ctx.label})`,games:ctx.games.slice(0,pus),color:'#ef4444',stype:'total'});
+        }
+      });
+    });
+
+    // Player streaks - only include those with matching odds
+    const gameTeams = [game.home, game.away];
+    let teamPlayers = D.teamList.filter(p => gameTeams.includes(p.team));
+    if (!teamPlayers.length) {
+      const opKey = `${tA}|${tB}`;
+      const op = D.oddsPlayers[opKey];
+      if (op) {
+        const hp = (op.home||[]).map(n => ({name:n, team:tA, pos_short:''}));
+        const ap = (op.away||[]).map(n => ({name:n, team:tB, pos_short:''}));
+        teamPlayers = [...hp, ...ap];
+      }
+    }
+    const goalMs = [{m:1,l:'1+ Goals',ok:'goals_over'},{m:2,l:'2+ Goals',ok:'goals_over'},{m:3,l:'3+ Goals',ok:'goals_over'},{m:4,l:'4+ Goals',ok:'goals_over'}];
+    const dispMs = [{m:15,l:'15+ Disp',ok:'disposals_over'},{m:20,l:'20+ Disp',ok:'disposals_over'},{m:25,l:'25+ Disp',ok:'disposals_over'},{m:30,l:'30+ Disp',ok:'disposals_over'}];
+
+    teamPlayers.forEach(p => {
+      const pd = D.playerData[p.name];
+      if (!pd || !pd.games.length) return;
+      const games = [...pd.games];
+
+      goalMs.forEach(({m,l,ok}) => {
+        const oddsObj = D.playerOdds[p.name]?.[ok]?.[m];
+        if (!oddsObj) return;
+        const buildLast10 = (gArr, streakLen, ms, st) => {
+          const showLen = Math.max(10, streakLen);
+          const l10 = gArr.slice(0,showLen);
+          const si = new Set(Array.from({length:streakLen}, (_,i)=>i));
+          return l10.map((g,i)=>({year:g.year,opp:ABBREV[g.opponent]||g.opponent.substring(0,4),opponent:g.opponent,venue:g.venue||'',goals:g.goals,disp:g.disposals,pctPlayed:g.pct_played,isStreak:si.has(i)}));
+        };
+
+        // All games context
+        const sAll = activeStreak(games, g => g.goals >= m);
+        if (sAll >= 5) {
+          pItems.push({player:p.name,teamKey:p.team,streak:sAll,desc:`${l} streak`,color:'#22c55e',odds:oddsObj,milestone:m,stat:'goals',
+            last10:buildLast10(games,sAll,m,'goals')});
+        }
+        // H2H context - only games vs the opponent team
+        const oppTeam = p.team === tA ? tB : tA;
+        const h2hGames = games.filter(g => g.opponent === oppTeam);
+        if (h2hGames.length >= 5) {
+          const sH2H = activeStreak(h2hGames, g => g.goals >= m);
+          if (sH2H >= 5) {
+            pItems.push({player:p.name,teamKey:p.team,streak:sH2H,desc:`${l} streak (vs ${ABBREV[oppTeam]||oppTeam})`,color:'#22c55e',odds:oddsObj,milestone:m,stat:'goals',
+              last10:buildLast10(h2hGames,sH2H,m,'goals')});
+          }
+        }
+        // Venue context
+        if (venUp) {
+          const venGames = games.filter(g => g.venue && g.venue.toUpperCase() === venUp);
+          if (venGames.length >= 5) {
+            const sVen = activeStreak(venGames, g => g.goals >= m);
+            if (sVen >= 5) {
+              pItems.push({player:p.name,teamKey:p.team,streak:sVen,desc:`${l} streak (at ${game.venueShort})`,color:'#22c55e',odds:oddsObj,milestone:m,stat:'goals',
+                last10:buildLast10(venGames,sVen,m,'goals')});
+            }
+          }
+        }
+      });
+      dispMs.forEach(({m,l,ok}) => {
+        const oddsObj = D.playerOdds[p.name]?.[ok]?.[m];
+        if (!oddsObj) return;
+        const buildLast10d = (gArr, streakLen) => {
+          const showLen = Math.max(10, streakLen);
+          const l10 = gArr.slice(0,showLen);
+          const si = new Set(Array.from({length:streakLen}, (_,i)=>i));
+          return l10.map((g,i)=>({year:g.year,opp:ABBREV[g.opponent]||g.opponent.substring(0,4),opponent:g.opponent,venue:g.venue||'',goals:g.goals,disp:g.disposals,pctPlayed:g.pct_played,isStreak:si.has(i)}));
+        };
+        // All games
+        const sAll = activeStreak(games, g => g.disposals >= m);
+        if (sAll >= 5) {
+          pItems.push({player:p.name,teamKey:p.team,streak:sAll,desc:`${l} streak`,color:'#22c55e',odds:oddsObj,milestone:m,stat:'disposals',
+            last10:buildLast10d(games,sAll)});
+        }
+        // H2H context - only games vs the opponent team
+        const oppTeamD = p.team === tA ? tB : tA;
+        const h2hGames = games.filter(g => g.opponent === oppTeamD);
+        if (h2hGames.length >= 5) {
+          const sH2H = activeStreak(h2hGames, g => g.disposals >= m);
+          if (sH2H >= 5) {
+            pItems.push({player:p.name,teamKey:p.team,streak:sH2H,desc:`${l} streak (vs ${ABBREV[oppTeamD]||oppTeamD})`,color:'#22c55e',odds:oddsObj,milestone:m,stat:'disposals',
+              last10:buildLast10d(h2hGames,sH2H)});
+          }
+        }
+        // Venue context
+        if (venUp) {
+          const venGames = games.filter(g => g.venue && g.venue.toUpperCase() === venUp);
+          if (venGames.length >= 5) {
+            const sVen = activeStreak(venGames, g => g.disposals >= m);
+            if (sVen >= 5) {
+              pItems.push({player:p.name,teamKey:p.team,streak:sVen,desc:`${l} streak (at ${game.venueShort})`,color:'#22c55e',odds:oddsObj,milestone:m,stat:'disposals',
+                last10:buildLast10d(venGames,sVen)});
+            }
+          }
+        }
+      });
+    });
+
+    tItems.sort((a,b)=>b.streak-a.streak);
+    pItems.sort((a,b)=>b.streak-a.streak);
+    return {teamStreaks: tItems, playerStreaks: pItems};
+  },[game,oddsData]);
+
+  const togExp = (idx) => setExpSet(prev => {const n={...prev}; if(n[idx]) delete n[idx]; else n[idx]=true; return n;});
+
+  const renderCard = (s, i, isPlayer) => {
+    const idx = isPlayer ? 'p'+i : 't'+i;
+    const isE = !!expSet[idx];
+    const ts = TEAM_STYLES[s.teamKey] || {};
+    return (
+      <div key={idx} onClick={()=>togExp(idx)} className={"streak-card"+(isE?" exp":"")} style={{borderColor:isE?s.color:undefined}}>
+        <div style={{display:'flex',alignItems:'center',gap:6}}>
+          <span style={{fontSize:14}}>{'\u{1F525}'}{s.streak}</span>
+          {isPlayer ? (
+            <span style={{fontSize:12,fontWeight:700,display:'flex',alignItems:'center',gap:4}}>
+              <span style={{background:ts.bg,color:ts.txt,padding:'1px 5px',borderRadius:4,fontSize:9,fontWeight:700}}>{ABBREV[s.teamKey]||s.teamKey}</span>
+              <span style={{color:'white'}}>{s.player}</span>
+            </span>
+          ) : (
+            <span style={{background:ts.bg,color:ts.txt,padding:'2px 8px',borderRadius:5,fontSize:12,fontWeight:700}}>{s.team}</span>
+          )}
+        </div>
+        <div style={{fontSize:11,color:'var(--t2)',marginTop:3}}>
+          {s.desc}
+          {isPlayer && s.odds && <span style={{color:'var(--acc)',marginLeft:6,fontSize:10}}>${s.odds.price.toFixed(2)} ({s.odds.bookie})</span>}
+        </div>
+        {isE && !isPlayer && s.games && (
+          <div onClick={e=>e.stopPropagation()} style={{marginTop:8,maxHeight:s.games.length>10?240:undefined,overflowY:s.games.length>10?'auto':'visible'}}>
+            <table className="gl-tbl" style={{fontSize:10}}>
+              <thead><tr><th>Yr</th><th>Rd</th><th>Opp</th><th>Result</th>{s.stype==='line'&&<th>Margin</th>}{s.stype==='total'&&<th>Pts</th>}</tr></thead>
+              <tbody>
+                {s.games.map((g,j)=>{
+                  const isH=g.t1===s.teamKey;
+                  const opp=isH?g.t2:g.t1;
+                  const oppTS=TEAM_STYLES[opp]||{};
+                  return (
+                    <tr key={j}>
+                      <td>{g.y}</td><td>{g.rd}</td>
+                      <td><span style={{background:oppTS.bg,color:oppTS.txt,padding:'1px 4px',borderRadius:3,fontSize:9}}>{ABBREV[opp]||opp.substring(0,3)}</span></td>
+                      <td style={{color:g.isWin?'#22c55e':g.isLoss?'#ef4444':'#eab308',fontWeight:700}}>
+                        {g.isWin?'W':g.isLoss?'L':'D'} {g.scored}-{g.conc}
+                      </td>
+                      {s.stype==='line'&&<td style={{fontWeight:700,color:g.margin>0?'#22c55e':'#ef4444'}}>{g.margin>0?'+':''}{g.margin}</td>}
+                      {s.stype==='total'&&<td style={{fontWeight:700,color:'var(--acc)'}}>{g.tp}</td>}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {isE && isPlayer && s.last10 && (
+          <div onClick={e=>e.stopPropagation()} style={{marginTop:8,maxHeight:s.last10.length>10?240:undefined,overflowY:s.last10.length>10?'auto':'visible'}}>
+            <table className="gl-tbl" style={{fontSize:10}}>
+              <thead><tr><th>Yr</th><th>Opp</th><th>Venue</th><th style={{textAlign:'center'}}>{s.stat==='goals'?'G':'D'}</th></tr></thead>
+              <tbody>
+                {s.last10.map((g,j)=>{
+                  const oppTeam = g.opponent;
+                  const oppTS = TEAM_STYLES[oppTeam]||{};
+                  const statVal = s.stat==='goals'?g.goals:g.disp;
+                  const isMilestone = statVal >= s.milestone;
+                  const statColor = isMilestone?'#00ffaa':'#ef4444';
+                  const rowBg = g.isStreak?'rgba(34,197,94,0.05)':'transparent';
+                  return (
+                    <tr key={j} style={{background:rowBg}}>
+                      <td>{g.year}</td>
+                      <td><span style={{background:oppTS.bg,color:oppTS.txt,padding:'1px 4px',borderRadius:3,fontSize:9}}>{g.opp}</span></td>
+                      <td style={{fontSize:9,color:'var(--t2)'}}>{g.venue}</td>
+                      <td style={{color:statColor,fontWeight:700,textAlign:'center'}}>{statVal}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const hasTeam = teamStreaks.length > 0;
+  const hasPlayer = playerStreaks.length > 0;
+  const showTeam = mainTab === 'team' && hasTeam;
+  const showPlayer = mainTab === 'player' && hasPlayer;
+  if (!showTeam && !showPlayer) return null;
+
+  return (
+    <div className="sec">
+      {showTeam && (
+        <>
+          <div className="stit" onClick={()=>setOpenTeam(!openTeam)}>
+            <span>{'\u{1F525}'} Team Streaks</span>
+            <span className={"arr"+(openTeam?" open":"")}>&#9660;</span>
+          </div>
+          {openTeam && (
+            <div style={{display:'flex',flexWrap:'nowrap',gap:8,overflowX:'auto',paddingBottom:6,WebkitOverflowScrolling:'touch'}}>
+              {teamStreaks.map((s,i) => renderCard(s, i, false))}
+            </div>
+          )}
+        </>
+      )}
+      {showPlayer && (
+        <>
+          <div className="stit" onClick={()=>setOpenPlayer(!openPlayer)}>
+            <span>{'\u{1F525}'} Player Streaks</span>
+            <span className={"arr"+(openPlayer?" open":"")}>&#9660;</span>
+          </div>
+          {openPlayer && (
+            <div style={{display:'flex',flexWrap:'nowrap',gap:8,overflowX:'auto',paddingBottom:6,WebkitOverflowScrolling:'touch'}}>
+              {playerStreaks.map((s,i) => renderCard(s, i, true))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function TeamStats({game, oddsData}) {
+  const [open,setOpen]=useState(true);
+  const [factors,setFactors]=useState(['all']);
+  const [period,setPeriod]=useState('2025');
+  const [qMode,setQMode]=useState('total');
+
+  const toggleFactor=useCallback((f)=>{
+    setFactors(prev=>{
+      if(f==='all') return ['all'];
+      let next=prev.filter(x=>x!=='all');
+      if(next.includes(f)) next=next.filter(x=>x!==f);
+      else next.push(f);
+      return next.length===0?['all']:next;
+    });
+  },[]);
+
+  const filtered=useMemo(()=>{
+    let gA=D.results.filter(r=>r.t1===game.home||r.t2===game.home);
+    let gB=D.results.filter(r=>r.t1===game.away||r.t2===game.away);
+    factors.forEach(factor=>{
+      if(factor==='h2h'){
+        const h2h=D.results.filter(r=>(r.t1===game.home&&r.t2===game.away)||(r.t1===game.away&&r.t2===game.home));
+        gA=gA.filter(g=>h2h.includes(g));
+        gB=gB.filter(g=>h2h.includes(g));
+      } else if(factor==='venue'){
+        const gv=(game.venueShort||'').toUpperCase();
+        if(gv){gA=gA.filter(r=>r.v&&r.v.toUpperCase()===gv);gB=gB.filter(r=>r.v&&r.v.toUpperCase()===gv);}
+      } else if(factor==='wet'){
+        gA=gA.filter(r=>r.cond==='WET');gB=gB.filter(r=>r.cond==='WET');
+      } else if(factor==='favund'&&oddsData){
+        const fav=oddsData.fav;
+        if(fav===game.home){
+          gA=gA.filter(r=>r.fav===game.home);
+          gB=gB.filter(r=>r.fav!==game.away&&(r.t1===game.away||r.t2===game.away));
+        } else {
+          gA=gA.filter(r=>r.fav!==game.home&&(r.t1===game.home||r.t2===game.home));
+          gB=gB.filter(r=>r.fav===game.away);
+        }
+      } else if(factor==='daynight'){
+        const td=game.tod;
+        gA=gA.filter(r=>r.tod===td);gB=gB.filter(r=>r.tod===td);
+      } else if(factor==='dow'){
+        const dw=game.day;
+        gA=gA.filter(r=>r.dow===dw);gB=gB.filter(r=>r.dow===dw);
+      }
+    });
+    if(period==='last10y'){gA=gA.filter(r=>r.y>=2016);gB=gB.filter(r=>r.y>=2016);}
+    else if(period==='last3y'){gA=gA.filter(r=>r.y>=2023);gB=gB.filter(r=>r.y>=2023);}
+    else if(period==='2025'){gA=gA.filter(r=>r.y===2025);gB=gB.filter(r=>r.y===2025);}
+    else if(period==='last10g'){
+      const srt=(a)=>[...a].sort((x,y)=>(y.ds||0)-(x.ds||0));
+      gA=srt(gA).slice(0,10);gB=srt(gB).slice(0,10);
+    }
+    return {a:gA,b:gB};
+  },[game,factors,period,oddsData]);
+
+  const {line, ptsLine} = getEffectiveOdds(oddsData, qMode);
+  const statsA=useMemo(()=>computeTeamStats(game.home,filtered.a,line,ptsLine,qMode),[game,filtered.a,line,ptsLine,qMode]);
+  const statsB=useMemo(()=>computeTeamStats(game.away,filtered.b,line,ptsLine,qMode),[game,filtered.b,line,ptsLine,qMode]);
+
+  const glA=useMemo(()=>{
+    const s=[...filtered.a].sort((a,b)=>(b.ds||0)-(a.ds||0));
+    return s.slice(0,50);
+  },[filtered.a]);
+  const glB=useMemo(()=>{
+    const s=[...filtered.b].sort((a,b)=>(b.ds||0)-(a.ds||0));
+    return s.slice(0,50);
+  },[filtered.b]);
+
+  const getHeader=(tn)=>{
+    let h=ABBREV[tn]||tn;
+    factors.forEach(f=>{
+      if(f==='h2h') h+=` vs ${ABBREV[tn===game.home?game.away:game.home]}`;
+      else if(f==='venue') h+=` at ${game.venueShort}`;
+      else if(f==='wet') h+=' Wet';
+      else if(f==='favund'&&oddsData) h+=(oddsData.fav===tn?' as Fav':' as Und');
+      else if(f==='daynight') h+=` ${game.tod}`;
+      else if(f==='dow') h+=` ${game.day}`;
+    });
+    if(period==='2025') h+=' 2025';
+    else if(period==='last3y') h+=' Last 3 Yrs';
+    else if(period==='last10y') h+=' Last 10 Yrs';
+    else if(period==='since2012') h+=' Since 2012';
+    else if(period==='last10g') h+=' Last 10';
+    if(qMode!=='total') h+=` (${qMode.toUpperCase()})`;
+    return h;
+  };
+
+  const fList=[['all','All Games'],['h2h','H2H'],['venue','Venue'],['wet','Wet'],['favund','Fav/Und'],['daynight','Day/Night'],['dow',game.day||'Day']];
+  const pList=[['since2012','Since 2012'],['last10y','Last 10 Yrs'],['last3y','Last 3 Yrs'],['2025','2025'],['last10g','Last 10']];
+  const qList=[['total','Total'],['q1','Q1'],['q2','Q2'],['q3','Q3'],['q4','Q4']];
+  const hS=TEAM_STYLES[game.home]||{};
+  const aS=TEAM_STYLES[game.away]||{};
+  const isQtr = qMode !== 'total';
+
+  return (
+    <div className="sec">
+      <div className="stit" onClick={()=>setOpen(!open)}>
+        <span>Team Stats Comparison</span>
+        <span className={"arr"+(open?" open":"")}>&#9660;</span>
+      </div>
+      {open&&(
+        <>
+          <div className="cr">
+            <div className="cl">Factor</div>
+            <div className="tg">
+              {fList.map(([v,l])=>(<button key={v} className={"tb"+(factors.includes(v)?" on":"")} onClick={()=>toggleFactor(v)}>{l}</button>))}
+            </div>
+          </div>
+          <div className="cr">
+            <div className="cl">Period</div>
+            <div className="tg">
+              {pList.map(([v,l])=>(<button key={v} className={"tb"+(period===v?" on":"")} onClick={()=>setPeriod(v)}>{l}</button>))}
+            </div>
+          </div>
+          <div className="cr">
+            <div className="cl">Quarter</div>
+            <div className="tg">
+              {qList.map(([v,l])=>(<button key={v} className={"tb"+(qMode===v?" on":"")} onClick={()=>setQMode(v)}>{l}</button>))}
+            </div>
+          </div>
+
+          <div className="ts-hdr">
+            <div className="ts-tn l" style={{color:hS.txt,background:hS.bg,padding:'2px 8px',borderRadius:4}}>{ABBREV[game.home]}</div>
+            <div className="ts-tn c">STAT</div>
+            <div className="ts-tn r" style={{color:aS.txt,background:aS.bg,padding:'2px 8px',borderRadius:4}}>{ABBREV[game.away]}</div>
+          </div>
+          <div className="ts-grid">
+            <StatRow label="Games" valA={statsA.games} valB={statsB.games} isCount={true}/>
+            <StatRow label="Win %" valA={statsA.winPct} valB={statsB.winPct} suffix="%"/>
+            {line>0&&<StatRow label={`Line Cover % (${line})`} valA={statsA.linePct} valB={statsB.linePct} suffix="%"/>}
+            {ptsLine>0&&<StatRow label={`Points Over % (${ptsLine})`} valA={statsA.ptsPct} valB={statsB.ptsPct} suffix="%"/>}
+            {!isQtr && (
+              <>
+                <StatRow label="40+ Wins" valA={statsA.w40} valB={statsB.w40} suffix="%"/>
+                <StatRow label="1-39 Wins" valA={statsA.w139} valB={statsB.w139} suffix="%"/>
+                <StatRow label="1-39 Losses" valA={statsA.l139} valB={statsB.l139} suffix="%" inverse={true}/>
+                <StatRow label="40+ Losses" valA={statsA.l40} valB={statsB.l40} suffix="%" inverse={true}/>
+              </>
+            )}
+            <StatRow label="Pts Scored/Gm" valA={statsA.ppg} valB={statsB.ppg} isCount={true}/>
+            <StatRow label="Pts Conceded/Gm" valA={statsA.pcpg} valB={statsB.pcpg} isCount={true} inverse={true}/>
+          </div>
+          <div style={{marginTop:12}}>
+            <div className="stit" style={{fontSize:11,marginBottom:8}}><span>Game Log</span></div>
+            <div className="gl-split">
+              <div>
+                <div className="gl-col-hdr">{getHeader(game.home)} ({filtered.a.length})</div>
+                <div className="gl-wrap">
+                  <table className="gl-tbl">
+                    <thead><tr><th>Year</th><th>Rd</th><th>Opp</th><th>Result</th><th>Venue</th><th>Margin</th><th>Pts</th></tr></thead>
+                    <tbody>{glA.map((g,i)=><GLRow key={i} g={g} team={game.home} line={line} ptsLine={ptsLine} qMode={qMode}/>)}</tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <div className="gl-col-hdr" style={{textAlign:'right'}}>{getHeader(game.away)} ({filtered.b.length})</div>
+                <div className="gl-wrap">
+                  <table className="gl-tbl">
+                    <thead><tr><th>Year</th><th>Rd</th><th>Opp</th><th>Result</th><th>Venue</th><th>Margin</th><th>Pts</th></tr></thead>
+                    <tbody>{glB.map((g,i)=><GLRow key={i} g={g} team={game.away} line={line} ptsLine={ptsLine} qMode={qMode}/>)}</tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+function PlayerStats({game}) {
+  const [subTab, setSubTab] = useState('goals');
+  const [factor, setFactor] = useState('all');
+  const [period, setPeriod] = useState('last10');
+  const [milestone, setMilestone] = useState(1);
+  const [exp, setExp] = useState(null);
+
+  const goalMilestones = [1, 2, 3, 4];
+  const dispMilestones = [15, 20, 25, 30];
+  const activeMilestones = subTab === 'goals' ? goalMilestones : dispMilestones;
+
+  React.useEffect(() => {
+    setMilestone(subTab === 'goals' ? 1 : 15);
+    setExp(null);
+  }, [subTab]);
+
+  const gameTeams = [game.home, game.away];
+  const teamListPlayers = D.teamList.filter(p => gameTeams.includes(p.team));
+  const oddsKey = `${game.home}|${game.away}`;
+  const op = D.oddsPlayers[oddsKey];
+  const hasTeamList = teamListPlayers.length > 0;
+
+  const gameTeamPlayers = hasTeamList ? teamListPlayers : (() => {
+    if (!op) return [];
+    const hp = (op.home||[]).map(n => ({name:n, team:game.home, pos_short:'', number:0, position:''}));
+    const ap = (op.away||[]).map(n => ({name:n, team:game.away, pos_short:'', number:0, position:''}));
+    return [...hp, ...ap];
+  })();
+
+  const filteredGames = useMemo(() => {
+    const filtered = {};
+    gameTeamPlayers.forEach(p => {
+      const playerData = D.playerData[p.name];
+      if (!playerData) return;
+      let games = [...playerData.games];
+      if (factor === 'h2h') {
+        const opp = p.team === game.home ? game.away : game.home;
+        games = games.filter(g => g.opponent === opp);
+      } else if (factor === 'venue' && game.venueShort) {
+        games = games.filter(g => g.venue === game.venueShort);
+      } else if (factor === 'wet') {
+        games = games.filter(g => g.conditions === 'WET');
+      } else if (factor === 'pos') {
+        const pd = D.playerData[p.name];
+        const pos = pd?.position || '';
+        if (pos) {
+          games = games.filter(g => g.position === pos);
+        }
+      }
+      if (period === 'last5') games = games.slice(0,5);
+      else if (period === 'last10') games = games.slice(0,10);
+      else if (period === '2025') games = games.filter(g => g.year === 2025);
+      filtered[p.name] = games;
+    });
+    return filtered;
+  }, [gameTeamPlayers, factor, period]);
+
+  const getStrikeRate = (games, ms, st) => {
+    if (!games.length) return 0;
+    return Math.round(games.filter(g => st === 'goals' ? g.goals >= ms : g.disposals >= ms).length / games.length * 100);
+  };
+
+  const sortByStrikeRate = (players) => {
+    return [...players].sort((a, b) => getStrikeRate(b.games, milestone, subTab) - getStrikeRate(a.games, milestone, subTab));
+  };
+
+  const hPlayers = sortByStrikeRate(gameTeamPlayers.filter(p => p.team === game.home).map(p => ({...p, games: filteredGames[p.name] || []})));
+  const aPlayers = sortByStrikeRate(gameTeamPlayers.filter(p => p.team === game.away).map(p => ({...p, games: filteredGames[p.name] || []})));
+  const hS = TEAM_STYLES[game.home] || {};
+  const aS = TEAM_STYLES[game.away] || {};
+
+  // Build matchup rows - sorted by strike rate regardless of position
+  const maxLen = Math.max(hPlayers.length, aPlayers.length);
+  const matchups = [];
+  for (let i = 0; i < maxLen; i++) {
+    matchups.push({a: hPlayers[i] || null, b: aPlayers[i] || null, pos: hPlayers[i]?.pos_short || aPlayers[i]?.pos_short || ''});
+  }
+
+  const tog = (k) => setExp(exp === k ? null : k);
+
+  const renderPC = (pl, side, teamStyles) => {
+    if (!pl) return <div className="pc" style={{opacity:.2}}><div className="pi"><span className="pname" style={{color:'var(--t3)'}}>-</span></div></div>;
+    const isR = side === 'right';
+    const games = pl.games || [];
+    const sr = getStrikeRate(games, milestone, subTab);
+    const oddsKey = subTab === 'goals' ? 'goals_over' : 'disposals_over';
+    const oddsObj = D.playerOdds[pl.name]?.[oddsKey]?.[milestone];
+    const srColor = sr >= 70 ? '#22c55e' : sr >= 40 ? '#eab308' : '#ef4444';
+    const prefix = isR ? 'B' : 'A';
+    const k = prefix + '_' + pl.name;
+    const isE = exp === k;
+
+    return (
+      <div className={'pc' + (isR ? ' rt' : '') + (isE ? ' exp' : '')} onClick={() => tog(k)}>
+        <div className="pi">
+          <div className="pn-num" style={{background: teamStyles.bg, color: teamStyles.txt}}>{pl.number}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div className="pname">{pl.name}</div>
+            <div className="ppos"><span style={{background:'rgba(0,212,160,0.2)',color:'var(--acc)',padding:'2px 6px',borderRadius:4,fontSize:8,fontWeight:700,textTransform:'uppercase',marginRight:6}}>{pl.pos_short}</span>{oddsObj ? <span style={{color:'var(--acc)',fontSize:9}}>${oddsObj.price.toFixed(2)} <span style={{opacity:.7}}>({oddsObj.bookie})</span></span> : ''}</div>
+          </div>
+          <div className="psr">
+            <div className="psr-val" style={{color: srColor}}>{sr}%</div>
+            <div className="psr-lbl">{games.length} gms</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderPD = (pl, teamStyles) => {
+    if (!pl) return null;
+    const games = pl.games || [];
+    if (!games.length) return <div className="pd"><div style={{fontSize:10,color:'var(--t3)'}}>No games for this filter</div></div>;
+
+    const totalGoals = games.reduce((s,g)=>s+g.goals,0);
+    const totalBehinds = games.reduce((s,g)=>s+(g.behinds||0),0);
+    const avgDisp = games.length ? (games.reduce((s,g)=>s+g.disposals,0)/games.length).toFixed(1) : '0.0';
+    const avgPct = games.length ? (games.reduce((s,g)=>s+g.pct_played,0)/games.length).toFixed(0) : '0';
+    const avgMI50 = games.length ? (games.reduce((s,g)=>s+(g.marks_i50||0),0)/games.length).toFixed(1) : '0.0';
+
+    const summaryItems = [
+      {label:'Games',val:games.length},
+      {label:'%Played',val:avgPct+'%'},
+      {label:'Goals',val:totalGoals},
+      {label:'Behinds',val:totalBehinds},
+      {label:'Avg Dis',val:avgDisp},
+      {label:'Marks I50',val:avgMI50}
+    ];
+
+    return (
+      <div className="pd">
+        <div style={{background:'var(--bg2)',border:'1px solid var(--brd)',borderRadius:8,padding:'6px 8px',marginBottom:8,fontSize:10,display:'flex',justifyContent:'space-between',gap:4,flexWrap:'wrap'}}>
+          {summaryItems.map((it,idx)=>(
+            <div key={idx} style={{textAlign:'center',flex:'1 1 0',minWidth:40}}>
+              <div style={{color:'var(--t3)',fontSize:8,whiteSpace:'nowrap'}}>{it.label}</div>
+              <div style={{fontWeight:700,fontSize:11}}>{it.val}</div>
+            </div>
+          ))}
+        </div>
+        <div className="gl-wrap" style={{maxHeight: 6*24+28}}>
+          <table className="gl-tbl">
+            <thead>
+              <tr>
+                <th>Year</th><th>Opp</th><th>Venue</th>
+                <th>Goals</th><th>Beh</th><th>Disp</th><th>MI50</th>
+                <th>Time%</th>
+              </tr>
+            </thead>
+            <tbody>
+              {games.map((g, i) => {
+                const val = subTab === 'goals' ? g.goals : g.disposals;
+                const hit = val >= milestone;
+                const oppTS = TEAM_STYLES[g.opponent]||{};
+                const oppAbbr = ABBREV[g.opponent] || g.opponent.substring(0,4);
+                return (
+                  <tr key={i}>
+                    <td>{g.year}</td>
+                    <td><span style={{background:oppTS.bg,color:oppTS.txt,padding:'1px 4px',borderRadius:3,fontSize:9}}>{oppAbbr}</span></td>
+                    <td style={{fontSize:9}}>{g.venue}</td>
+                    <td style={{color: (subTab==='goals'&&g.goals>=milestone) ? '#00ffaa' : (subTab==='goals'?'#ef4444':'var(--t1)'), fontWeight: subTab==='goals'?700:400}}>{g.goals}</td>
+                    <td>{g.behinds||0}</td>
+                    <td style={{color: (subTab==='disposals'&&g.disposals>=milestone) ? '#00ffaa' : (subTab==='disposals'?'#ef4444':'var(--t1)'), fontWeight: subTab==='disposals'?700:400}}>{g.disposals}</td>
+                    <td>{g.marks_i50||0}</td>
+                    <td>{g.pct_played.toFixed(0)}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  if (!gameTeamPlayers.length) {
+    return <div className="sec"><p style={{color: 'var(--t2)', padding: '20px'}}>No player data available for this game</p></div>;
+  }
+
+  return (
+    <div className="sec">
+      <div className="stit">Player Stats</div>
+      {!hasTeamList && <div style={{textAlign:'center',fontSize:10,color:'var(--t3)',marginBottom:8,fontStyle:'italic'}}>Team lists not available — showing players from odds markets</div>}
+      <div className="cr">
+        <div className="cl">Stat</div>
+        <div className="tg">
+          <button className={"tb" + (subTab === 'goals' ? " on" : "")} onClick={() => setSubTab('goals')}>Goals</button>
+          <button className={"tb" + (subTab === 'disposals' ? " on" : "")} onClick={() => setSubTab('disposals')}>Disposals</button>
+        </div>
+      </div>
+      <div className="cr">
+        <div className="cl">{subTab === 'goals' ? 'Goals' : 'Disposals'}</div>
+        <div className="tg">
+          {activeMilestones.map(m => (
+            <button key={m} className={"tb" + (milestone === m ? " on" : "")} onClick={() => setMilestone(m)}>{m}+</button>
+          ))}
+        </div>
+      </div>
+      <div className="cr">
+        <div className="cl">Factor</div>
+        <div className="tg">
+          <button className={"tb" + (factor === 'all' ? " on" : "")} onClick={() => setFactor('all')}>All</button>
+          <button className={"tb" + (factor === 'h2h' ? " on" : "")} onClick={() => setFactor('h2h')}>H2H</button>
+          <button className={"tb" + (factor === 'venue' ? " on" : "")} onClick={() => setFactor('venue')}>Venue</button>
+          <button className={"tb" + (factor === 'wet' ? " on" : "")} onClick={() => setFactor('wet')}>Wet</button>
+          <button className={"tb" + (factor === 'pos' ? " on" : "")} onClick={() => setFactor('pos')}>Position</button>
+        </div>
+      </div>
+      <div className="cr">
+        <div className="cl">Period</div>
+        <div className="tg">
+          <button className={"tb" + (period === 'last5' ? " on" : "")} onClick={() => setPeriod('last5')}>Last 5</button>
+          <button className={"tb" + (period === 'last10' ? " on" : "")} onClick={() => setPeriod('last10')}>Last 10</button>
+          <button className={"tb" + (period === '2025' ? " on" : "")} onClick={() => setPeriod('2025')}>2025</button>
+          <button className={"tb" + (period === 'all' ? " on" : "")} onClick={() => setPeriod('all')}>All</button>
+        </div>
+      </div>
+
+      <div className="mc" style={{marginTop:12}}>
+        <div className="mh">
+          <div className="mht" style={{background:hS.bg,color:hS.txt}}>{ABBREV[game.home]}</div>
+          <div className="mhv">VS</div>
+          <div className="mht" style={{background:aS.bg,color:aS.txt}}>{ABBREV[game.away]}</div>
+        </div>
+        {matchups.map((m, i) => {
+          const kA = m.a ? 'A_' + m.a.name : null;
+          const kB = m.b ? 'B_' + m.b.name : null;
+          const sA = exp === kA && kA;
+          const sB = exp === kB && kB;
+          return (
+            <React.Fragment key={i}>
+              <div className="mr">
+                {renderPC(m.a, 'left', hS)}
+                <div className="mp"><span className="mpb">{i+1}</span></div>
+                {renderPC(m.b, 'right', aS)}
+              </div>
+              {sA && m.a && renderPD(m.a, hS)}
+              {sB && m.b && renderPD(m.b, aS)}
+            </React.Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [selGame,setSelGame]=useState(0);
+  const [mainTab, setMainTab] = useState('player');
+  const games=D.orGames;
+  const g=games[selGame];
+  const oddsKey=`${g.home}|${g.away}`;
+  const oddsData=D.odds[oddsKey]||null;
+  const hS=TEAM_STYLES[g.home]||{};
+  const aS=TEAM_STYLES[g.away]||{};
+
+  return (
+    <div>
+      <div className="hdr">
+        <div className="hdr-in">
+          <div>
+            <div className="logo-t">RSG</div>
+            <div className="logo-s">AFL Round 2, 2026</div>
+          </div>
+          <div className="gsel">
+            {games.map((gm,i)=>(
+              <div key={i} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+                <div style={{fontSize:9,color:'var(--t3)',whiteSpace:'nowrap'}}>{gm.day} {gm.time}</div>
+                <button className={"gbtn"+(selGame===i?" on":"")} onClick={()=>setSelGame(i)}>
+                  <span className="tbadge" style={{background:TEAM_STYLES[gm.home]?.bg,color:TEAM_STYLES[gm.home]?.txt}}>{ABBREV[gm.home]}</span>
+                  {' v '}
+                  <span className="tbadge" style={{background:TEAM_STYLES[gm.away]?.bg,color:TEAM_STYLES[gm.away]?.txt}}>{ABBREV[gm.away]}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="ctr">
+        <div className="gml">
+          <span style={{background:hS.bg,color:hS.txt,padding:'4px 12px',borderRadius:6,fontWeight:800,fontSize:16}}>{ABBREV[g.home]}</span>
+          <div className="gmv">vs</div>
+          <span style={{background:aS.bg,color:aS.txt,padding:'4px 12px',borderRadius:6,fontWeight:800,fontSize:16}}>{ABBREV[g.away]}</span>
+        </div>
+        <div className="gvn">
+          {g.venue} | {g.day} {g.date} | {g.time} | {g.tod}
+        </div>
+        <div style={{display:'flex',justifyContent:'center',gap:20,marginBottom:16}}>
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:10,color:'var(--t3)',marginBottom:2}}>Last 5</div>
+            <FormDots team={g.home}/>
+          </div>
+          <div style={{textAlign:'center'}}>
+            <div style={{fontSize:10,color:'var(--t3)',marginBottom:2}}>Last 5</div>
+            <FormDots team={g.away}/>
+          </div>
+        </div>
+
+        {oddsData&&(
+          <div className="odds-row">
+            <div className="od-item">
+              <span className="tbadge" style={{background:hS.bg,color:hS.txt}}>{ABBREV[g.home]}</span>
+              <span className="od-val">${oddsData.homeOdds.toFixed(2)}</span>
+              {oddsData.homeBookie && <span style={{fontSize:8,color:'var(--t3)',marginLeft:2}}>({oddsData.homeBookie})</span>}
+            </div>
+            <div className="od-item">Line: <span className="od-val">{oddsData.spread || 'N/A'}</span></div>
+            <div className="od-item">Total: <span className="od-val">{oddsData.total || 'N/A'}</span></div>
+            <div className="od-item">
+              <span className="tbadge" style={{background:aS.bg,color:aS.txt}}>{ABBREV[g.away]}</span>
+              <span className="od-val">${oddsData.awayOdds.toFixed(2)}</span>
+              {oddsData.awayBookie && <span style={{fontSize:8,color:'var(--t3)',marginLeft:2}}>({oddsData.awayBookie})</span>}
+            </div>
+          </div>
+        )}
+
+        <div className="tab-main">
+          <button className={"tb" + (mainTab === 'team' ? " on" : "")} onClick={() => setMainTab('team')}>Team Stats</button>
+          <button className={"tb" + (mainTab === 'player' ? " on" : "")} onClick={() => setMainTab('player')}>Player Stats</button>
+        </div>
+
+        <Streaks game={g} oddsData={oddsData} mainTab={mainTab}/>
+
+        {mainTab === 'team' ? (
+          <TeamStats game={g} oddsData={oddsData}/>
+        ) : (
+          <PlayerStats game={g}/>
+        )}
+      </div>
+      <div className="ftr">RSG AFL Dashboard - Round 2, 2026</div>
+    </div>
+  );
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+</body>
+</html>
