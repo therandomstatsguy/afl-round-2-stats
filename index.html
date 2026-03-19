@@ -806,6 +806,68 @@ function PlayerStats({game}) {
 
   const renderPD = (pl, teamStyles) => {
     if (!pl) return null;
+    const isPosFilt = factor === 'pos';
+    const playerPos = D.playerData[pl.name]?.position || '';
+
+    if (isPosFilt && playerPos) {
+      // Position mode: show opponent players in this position as normal rows
+      const games = pl.games || [];
+      if (!games.length) return <div className="pd"><div style={{fontSize:10,color:'var(--t3)'}}>No games for this filter</div></div>;
+
+      // Flatten: for each game, get opponent position players with their stats
+      const rows = [];
+      games.forEach((g,gi) => {
+        const posKey = `${g.opponent}|${g.team}|${g.round}|${playerPos}`;
+        const oppPlayers = D.posLookup[posKey] || [];
+        if (oppPlayers.length) {
+          const hitCount = oppPlayers.filter(op => subTab === 'goals' ? op.g >= milestone : op.d >= milestone).length;
+          const hitPct = Math.round(hitCount / oppPlayers.length * 100);
+          oppPlayers.forEach((op,j) => {
+            rows.push({...op, opponent: g.opponent, venue: g.venue, year: g.year, round: g.round, team: g.team, hitPct, gi, j});
+          });
+        }
+      });
+
+      if (!rows.length) return <div className="pd"><div style={{fontSize:10,color:'var(--t3)'}}>No position data for this filter</div></div>;
+
+      return (
+        <div className="pd">
+          <div className="gl-wrap" style={{maxHeight: 8*24+28}}>
+            <table className="gl-tbl">
+              <thead>
+                <tr>
+                  <th>Player</th><th>Opp</th>
+                  <th>Goals</th><th>Beh</th><th>Disp</th><th>MI50</th>
+                  <th>Time%</th><th>{playerPos} %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r,idx) => {
+                  const oppTS = TEAM_STYLES[r.opponent]||{};
+                  const oppAbbr = ABBREV[r.opponent] || r.opponent.substring(0,4);
+                  const statVal = subTab === 'goals' ? r.g : r.d;
+                  const isHit = statVal >= milestone;
+                  return (
+                    <tr key={idx}>
+                      <td style={{fontSize:9,fontWeight:600,color:'var(--t1)',whiteSpace:'nowrap'}}>{r.n}</td>
+                      <td><span style={{background:oppTS.bg,color:oppTS.txt,padding:'1px 4px',borderRadius:3,fontSize:9}}>{oppAbbr}</span></td>
+                      <td style={{color: (subTab==='goals'&&isHit) ? '#00ffaa' : (subTab==='goals'&&r.g<milestone?'#ef4444':'var(--t1)'), fontWeight: subTab==='goals'?700:400}}>{r.g}</td>
+                      <td>{r.b}</td>
+                      <td style={{color: (subTab==='disposals'&&isHit) ? '#00ffaa' : (subTab==='disposals'&&r.d<milestone?'#ef4444':'var(--t1)'), fontWeight: subTab==='disposals'?700:400}}>{r.d}</td>
+                      <td>{r.m}</td>
+                      <td>{r.p.toFixed?r.p.toFixed(0):r.p}%</td>
+                      <td style={{fontWeight:700,color:r.hitPct>=50?'#22c55e':'#ef4444'}}>{r.hitPct}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // Normal mode (non-position)
     const games = pl.games || [];
     if (!games.length) return <div className="pd"><div style={{fontSize:10,color:'var(--t3)'}}>No games for this filter</div></div>;
 
@@ -823,9 +885,6 @@ function PlayerStats({game}) {
       {label:'Avg Dis',val:avgDisp},
       {label:'Marks I50',val:avgMI50}
     ];
-
-    const isPosFilt = factor === 'pos';
-    const playerPos = D.playerData[pl.name]?.position || '';
 
     return (
       <div className="pd">
@@ -848,39 +907,19 @@ function PlayerStats({game}) {
             </thead>
             <tbody>
               {games.map((g, i) => {
-                const val = subTab === 'goals' ? g.goals : g.disposals;
-                const hit = val >= milestone;
                 const oppTS = TEAM_STYLES[g.opponent]||{};
                 const oppAbbr = ABBREV[g.opponent] || g.opponent.substring(0,4);
-                const posKey = isPosFilt && playerPos ? `${g.opponent}|${g.team}|${g.round}|${playerPos}` : '';
-                const oppPosPlayers = posKey ? (D.posLookup[posKey] || []) : [];
                 return (
-                  <React.Fragment key={i}>
-                    <tr>
-                      <td>{g.year}</td>
-                      <td><span style={{background:oppTS.bg,color:oppTS.txt,padding:'1px 4px',borderRadius:3,fontSize:9}}>{oppAbbr}</span></td>
-                      <td style={{fontSize:9}}>{g.venue}</td>
-                      <td style={{color: (subTab==='goals'&&g.goals>=milestone) ? '#00ffaa' : (subTab==='goals'?'#ef4444':'var(--t1)'), fontWeight: subTab==='goals'?700:400}}>{g.goals}</td>
-                      <td>{g.behinds||0}</td>
-                      <td style={{color: (subTab==='disposals'&&g.disposals>=milestone) ? '#00ffaa' : (subTab==='disposals'?'#ef4444':'var(--t1)'), fontWeight: subTab==='disposals'?700:400}}>{g.disposals}</td>
-                      <td>{g.marks_i50||0}</td>
-                      <td>{g.pct_played.toFixed(0)}%</td>
-                    </tr>
-                    {isPosFilt && oppPosPlayers.map((op,j)=>(
-                      <tr key={`opp${i}_${j}`} style={{background:'rgba(0,212,160,0.04)'}}>
-                        <td colSpan={2} style={{fontSize:8,color:'var(--t2)',paddingLeft:8}}>
-                          <span style={{background:oppTS.bg,color:oppTS.txt,padding:'0px 3px',borderRadius:2,fontSize:7,marginRight:3}}>{oppAbbr}</span>
-                          {op.n}
-                        </td>
-                        <td style={{fontSize:8,color:'var(--t3)'}}>{playerPos}</td>
-                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.g}</td>
-                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.b}</td>
-                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.d}</td>
-                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.m}</td>
-                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.p.toFixed?op.p.toFixed(0):op.p}%</td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
+                  <tr key={i}>
+                    <td>{g.year}</td>
+                    <td><span style={{background:oppTS.bg,color:oppTS.txt,padding:'1px 4px',borderRadius:3,fontSize:9}}>{oppAbbr}</span></td>
+                    <td style={{fontSize:9}}>{g.venue}</td>
+                    <td style={{color: (subTab==='goals'&&g.goals>=milestone) ? '#00ffaa' : (subTab==='goals'?'#ef4444':'var(--t1)'), fontWeight: subTab==='goals'?700:400}}>{g.goals}</td>
+                    <td>{g.behinds||0}</td>
+                    <td style={{color: (subTab==='disposals'&&g.disposals>=milestone) ? '#00ffaa' : (subTab==='disposals'?'#ef4444':'var(--t1)'), fontWeight: subTab==='disposals'?700:400}}>{g.disposals}</td>
+                    <td>{g.marks_i50||0}</td>
+                    <td>{g.pct_played.toFixed(0)}%</td>
+                  </tr>
                 );
               })}
             </tbody>
