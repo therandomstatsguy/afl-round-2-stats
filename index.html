@@ -761,8 +761,14 @@ function PlayerStats({game}) {
     return [...players].sort((a, b) => getStrikeRate(b.games, milestone, subTab) - getStrikeRate(a.games, milestone, subTab));
   };
 
-  const hPlayers = sortByStrikeRate(gameTeamPlayers.filter(p => p.team === game.home).map(p => ({...p, games: filteredGames[p.name] || []})));
-  const aPlayers = sortByStrikeRate(gameTeamPlayers.filter(p => p.team === game.away).map(p => ({...p, games: filteredGames[p.name] || []})));
+  const sortPlayers = (players) => {
+    if (factor === 'pos') {
+      return [...players].sort((a, b) => getPosSR(b).sr - getPosSR(a).sr);
+    }
+    return sortByStrikeRate(players);
+  };
+  const hPlayers = sortPlayers(gameTeamPlayers.filter(p => p.team === game.home).map(p => ({...p, games: filteredGames[p.name] || []})));
+  const aPlayers = sortPlayers(gameTeamPlayers.filter(p => p.team === game.away).map(p => ({...p, games: filteredGames[p.name] || []})));
   const hS = TEAM_STYLES[game.home] || {};
   const aS = TEAM_STYLES[game.away] || {};
 
@@ -775,17 +781,39 @@ function PlayerStats({game}) {
 
   const tog = (k) => setExp(exp === k ? null : k);
 
+  const getPosSR = (pl) => {
+    const pos = D.playerData[pl.name]?.position || '';
+    if (!pos) return {sr: 0, count: 0};
+    const games = pl.games || [];
+    let total = 0, hits = 0;
+    games.forEach(g => {
+      const posKey = `${g.opponent}|${g.team}|${g.round}|${pos}`;
+      const oppPlayers = D.posLookup[posKey] || [];
+      oppPlayers.forEach(op => {
+        total++;
+        const val = subTab === 'goals' ? op.g : op.d;
+        if (val >= milestone) hits++;
+      });
+    });
+    return {sr: total ? Math.round(hits / total * 100) : 0, count: total};
+  };
+
   const renderPC = (pl, side, teamStyles) => {
     if (!pl) return <div className="pc" style={{opacity:.2}}><div className="pi"><span className="pname" style={{color:'var(--t3)'}}>-</span></div></div>;
     const isR = side === 'right';
     const games = pl.games || [];
-    const sr = getStrikeRate(games, milestone, subTab);
+    const isPosFilt = factor === 'pos';
+    const playerSR = getStrikeRate(games, milestone, subTab);
+    const posSRData = isPosFilt ? getPosSR(pl) : null;
+    const sr = isPosFilt ? posSRData.sr : playerSR;
+    const srCount = isPosFilt ? posSRData.count : games.length;
     const oddsKey = subTab === 'goals' ? 'goals_over' : 'disposals_over';
     const oddsObj = D.playerOdds[pl.name]?.[oddsKey]?.[milestone];
     const srColor = sr >= 70 ? '#22c55e' : sr >= 40 ? '#eab308' : '#ef4444';
     const prefix = isR ? 'B' : 'A';
     const k = prefix + '_' + pl.name;
     const isE = exp === k;
+    const pos = D.playerData[pl.name]?.position || pl.pos_short;
 
     return (
       <div className={'pc' + (isR ? ' rt' : '') + (isE ? ' exp' : '')} onClick={() => tog(k)}>
@@ -797,7 +825,7 @@ function PlayerStats({game}) {
           </div>
           <div className="psr">
             <div className="psr-val" style={{color: srColor}}>{sr}%</div>
-            <div className="psr-lbl">{games.length} gms</div>
+            <div className="psr-lbl">{isPosFilt ? `${srCount} opp` : `${games.length} gms`}</div>
           </div>
         </div>
       </div>
@@ -820,10 +848,8 @@ function PlayerStats({game}) {
         const posKey = `${g.opponent}|${g.team}|${g.round}|${playerPos}`;
         const oppPlayers = D.posLookup[posKey] || [];
         if (oppPlayers.length) {
-          const hitCount = oppPlayers.filter(op => subTab === 'goals' ? op.g >= milestone : op.d >= milestone).length;
-          const hitPct = Math.round(hitCount / oppPlayers.length * 100);
           oppPlayers.forEach((op,j) => {
-            rows.push({...op, opponent: g.opponent, venue: g.venue, year: g.year, round: g.round, team: g.team, hitPct, gi, j});
+            rows.push({...op, opponent: g.opponent, venue: g.venue, year: g.year, round: g.round, team: g.team, gi, j});
           });
         }
       });
@@ -838,7 +864,7 @@ function PlayerStats({game}) {
                 <tr>
                   <th>Player</th><th>Opp</th>
                   <th>Goals</th><th>Beh</th><th>Disp</th><th>MI50</th>
-                  <th>Time%</th><th>{playerPos} %</th>
+                  <th>Time%</th>
                 </tr>
               </thead>
               <tbody>
@@ -856,7 +882,6 @@ function PlayerStats({game}) {
                       <td style={{color: (subTab==='disposals'&&isHit) ? '#00ffaa' : (subTab==='disposals'&&r.d<milestone?'#ef4444':'var(--t1)'), fontWeight: subTab==='disposals'?700:400}}>{r.d}</td>
                       <td>{r.m}</td>
                       <td>{r.p.toFixed?r.p.toFixed(0):r.p}%</td>
-                      <td style={{fontWeight:700,color:r.hitPct>=50?'#22c55e':'#ef4444'}}>{r.hitPct}%</td>
                     </tr>
                   );
                 })}
