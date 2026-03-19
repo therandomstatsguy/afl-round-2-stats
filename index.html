@@ -757,6 +757,23 @@ function PlayerStats({game}) {
     return Math.round(games.filter(g => st === 'goals' ? g.goals >= ms : g.disposals >= ms).length / games.length * 100);
   };
 
+  const getPosSR = (pl) => {
+    const pos = D.playerData[pl.name]?.position || '';
+    if (!pos) return {sr: 0, count: 0};
+    const games = pl.games || [];
+    let total = 0, hits = 0;
+    games.forEach(g => {
+      const posKey = `${g.opponent}|${g.team}|${g.round}|${pos}`;
+      const oppPlayers = D.posLookup[posKey] || [];
+      oppPlayers.forEach(op => {
+        total++;
+        const val = subTab === 'goals' ? op.g : op.d;
+        if (val >= milestone) hits++;
+      });
+    });
+    return {sr: total ? Math.round(hits / total * 100) : 0, count: total};
+  };
+
   const sortByStrikeRate = (players) => {
     return [...players].sort((a, b) => getStrikeRate(b.games, milestone, subTab) - getStrikeRate(a.games, milestone, subTab));
   };
@@ -780,23 +797,6 @@ function PlayerStats({game}) {
   }
 
   const tog = (k) => setExp(exp === k ? null : k);
-
-  const getPosSR = (pl) => {
-    const pos = D.playerData[pl.name]?.position || '';
-    if (!pos) return {sr: 0, count: 0};
-    const games = pl.games || [];
-    let total = 0, hits = 0;
-    games.forEach(g => {
-      const posKey = `${g.opponent}|${g.team}|${g.round}|${pos}`;
-      const oppPlayers = D.posLookup[posKey] || [];
-      oppPlayers.forEach(op => {
-        total++;
-        const val = subTab === 'goals' ? op.g : op.d;
-        if (val >= milestone) hits++;
-      });
-    });
-    return {sr: total ? Math.round(hits / total * 100) : 0, count: total};
-  };
 
   const renderPC = (pl, side, teamStyles) => {
     if (!pl) return <div className="pc" style={{opacity:.2}}><div className="pi"><span className="pname" style={{color:'var(--t3)'}}>-</span></div></div>;
