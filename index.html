@@ -519,7 +519,7 @@ function Streaks({game, oddsData, mainTab}) {
 function TeamStats({game, oddsData}) {
   const [open,setOpen]=useState(true);
   const [factors,setFactors]=useState(['all']);
-  const [period,setPeriod]=useState('2025');
+  const [period,setPeriod]=useState('2026');
   const [qMode,setQMode]=useState('total');
 
   const toggleFactor=useCallback((f)=>{
@@ -564,7 +564,7 @@ function TeamStats({game, oddsData}) {
     });
     if(period==='last10y'){gA=gA.filter(r=>r.y>=2016);gB=gB.filter(r=>r.y>=2016);}
     else if(period==='last3y'){gA=gA.filter(r=>r.y>=2023);gB=gB.filter(r=>r.y>=2023);}
-    else if(period==='2025'){gA=gA.filter(r=>r.y===2025);gB=gB.filter(r=>r.y===2025);}
+    else if(period==='2026'){gA=gA.filter(r=>r.y===2026);gB=gB.filter(r=>r.y===2026);}
     else if(period==='last10g'){
       const srt=(a)=>[...a].sort((x,y)=>(y.ds||0)-(x.ds||0));
       gA=srt(gA).slice(0,10);gB=srt(gB).slice(0,10);
@@ -596,7 +596,7 @@ function TeamStats({game, oddsData}) {
       else if(f==='daynight') h+=` ${game.tod}`;
       else if(f==='dow') h+=` ${game.day}`;
     });
-    if(period==='2025') h+=' 2025';
+    if(period==='2026') h+=' 2026';
     else if(period==='last3y') h+=' Last 3 Yrs';
     else if(period==='last10y') h+=' Last 10 Yrs';
     else if(period==='since2012') h+=' Since 2012';
@@ -606,7 +606,7 @@ function TeamStats({game, oddsData}) {
   };
 
   const fList=[['all','All Games'],['h2h','H2H'],['venue','Venue'],['wet','Wet'],['favund','Fav/Und'],['daynight','Day/Night'],['dow',game.day||'Day']];
-  const pList=[['since2012','Since 2012'],['last10y','Last 10 Yrs'],['last3y','Last 3 Yrs'],['2025','2025'],['last10g','Last 10']];
+  const pList=[['since2012','Since 2012'],['last10y','Last 10 Yrs'],['last3y','Last 3 Yrs'],['2026','2026'],['last10g','Last 10']];
   const qList=[['total','Total'],['q1','Q1'],['q2','Q2'],['q3','Q3'],['q4','Q4']];
   const hS=TEAM_STYLES[game.home]||{};
   const aS=TEAM_STYLES[game.away]||{};
@@ -741,7 +741,7 @@ function PlayerStats({game}) {
       }
       if (period === 'last5') games = games.slice(0,5);
       else if (period === 'last10') games = games.slice(0,10);
-      else if (period === '2025') games = games.filter(g => g.year === 2025);
+      else if (period === '2026') games = games.filter(g => g.year === 2026);
       filtered[p.name] = games;
     });
     return filtered;
@@ -755,15 +755,15 @@ function PlayerStats({game}) {
   const getPosSR = (pl) => {
     const pos = D.playerData[pl.name]?.position || '';
     if (!pos) return {sr: 0, count: 0};
-    // Find the Round 2 opponent for this player's team
+    // Find the Round opponent for this player's team
     const oppTeam = pl.team === game.home ? game.away : game.home;
-    // Look through all posLookup keys to find opponent position players vs this team
+    // All players from any team who played this position against oppTeam
     let total = 0, hits = 0;
     Object.keys(D.posLookup).forEach(key => {
       const parts = key.split('|');
       // key format: team|opponent|round|position
-      // We want: opponent's team players who played this position against the player's team
-      if (parts[0] === oppTeam && parts[1] === pl.team && parts[3] === pos) {
+      // Want: any team's players in this position who played against oppTeam
+      if (parts[1] === oppTeam && parts[3] === pos) {
         D.posLookup[key].forEach(op => {
           total++;
           const val = subTab === 'goals' ? op.g : op.d;
@@ -838,16 +838,20 @@ function PlayerStats({game}) {
     const playerPos = D.playerData[pl.name]?.position || '';
 
     if (isPosFilt && playerPos) {
-      // Position mode: show Round opponent's position players vs this team
+      // Position mode: show all players who played this position against the round opponent
+      // e.g. Hawks FB -> show all FBs from any team who played against Sydney
       const oppTeam = pl.team === game.home ? game.away : game.home;
       const rows = [];
       Object.keys(D.posLookup).forEach(key => {
         const parts = key.split('|');
-        // key: team|opponent|round|position
-        // Want: oppTeam players who played this position against pl.team
-        if (parts[0] === oppTeam && parts[1] === pl.team && parts[3] === playerPos) {
+        // key format: team|opponent|round|position
+        // Want: any team's players who played this position against oppTeam
+        if (parts[1] === oppTeam && parts[3] === playerPos) {
+          const playerTeam = parts[0];
+          const teamTS = TEAM_STYLES[playerTeam]||{};
+          const teamAbbr = ABBREV[playerTeam] || playerTeam.substring(0,4);
           D.posLookup[key].forEach((op,j) => {
-            rows.push({...op, opponent: pl.team, oppTeam: oppTeam, round: parts[2], gi: rows.length, j});
+            rows.push({...op, playerTeam, teamAbbr, teamTS, round: parts[2], gi: rows.length, j});
           });
         }
       });
@@ -867,14 +871,12 @@ function PlayerStats({game}) {
               </thead>
               <tbody>
                 {rows.map((r,idx) => {
-                  const oppTS = TEAM_STYLES[r.oppTeam]||{};
-                  const oppAbbr = ABBREV[r.oppTeam] || r.oppTeam.substring(0,4);
                   const statVal = subTab === 'goals' ? r.g : r.d;
                   const isHit = statVal >= milestone;
                   return (
                     <tr key={idx}>
                       <td style={{fontSize:9,fontWeight:600,color:'var(--t1)',whiteSpace:'nowrap'}}>
-                        <span style={{background:oppTS.bg,color:oppTS.txt,padding:'0px 3px',borderRadius:2,fontSize:7,marginRight:3}}>{oppAbbr}</span>
+                        <span style={{background:r.teamTS.bg,color:r.teamTS.txt,padding:'0px 3px',borderRadius:2,fontSize:7,marginRight:3}}>{r.teamAbbr}</span>
                         {r.n}
                       </td>
                       <td style={{fontSize:8,color:'var(--t3)'}}>{r.round}</td>
@@ -993,7 +995,7 @@ function PlayerStats({game}) {
         <div className="tg">
           <button className={"tb" + (period === 'last5' ? " on" : "")} onClick={() => setPeriod('last5')}>Last 5</button>
           <button className={"tb" + (period === 'last10' ? " on" : "")} onClick={() => setPeriod('last10')}>Last 10</button>
-          <button className={"tb" + (period === '2025' ? " on" : "")} onClick={() => setPeriod('2025')}>2025</button>
+          <button className={"tb" + (period === '2026' ? " on" : "")} onClick={() => setPeriod('2026')}>2026</button>
           <button className={"tb" + (period === 'all' ? " on" : "")} onClick={() => setPeriod('all')}>All</button>
         </div>
       </div>
