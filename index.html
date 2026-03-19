@@ -866,16 +866,20 @@ function PlayerStats({game}) {
                       <td>{g.marks_i50||0}</td>
                       <td>{g.pct_played.toFixed(0)}%</td>
                     </tr>
-                    {isPosFilt && oppPosPlayers.length > 0 && (
-                      <tr style={{background:'rgba(0,212,160,0.04)'}}>
-                        <td colSpan={8} style={{padding:'2px 6px',fontSize:8,color:'var(--t3)'}}>
-                          <span style={{color:'var(--acc)',fontWeight:600}}>vs {playerPos}:</span>{' '}
-                          {oppPosPlayers.map((n,j)=>(
-                            <span key={j} style={{color:'var(--t2)'}}>{j>0?', ':''}{n}</span>
-                          ))}
+                    {isPosFilt && oppPosPlayers.map((op,j)=>(
+                      <tr key={`opp${i}_${j}`} style={{background:'rgba(0,212,160,0.04)'}}>
+                        <td colSpan={2} style={{fontSize:8,color:'var(--t2)',paddingLeft:8}}>
+                          <span style={{background:oppTS.bg,color:oppTS.txt,padding:'0px 3px',borderRadius:2,fontSize:7,marginRight:3}}>{oppAbbr}</span>
+                          {op.n}
                         </td>
+                        <td style={{fontSize:8,color:'var(--t3)'}}>{playerPos}</td>
+                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.g}</td>
+                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.b}</td>
+                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.d}</td>
+                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.m}</td>
+                        <td style={{fontSize:8,color:'var(--t2)'}}>{op.p.toFixed?op.p.toFixed(0):op.p}%</td>
                       </tr>
-                    )}
+                    ))}
                   </React.Fragment>
                 );
               })}
