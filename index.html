@@ -856,6 +856,8 @@ function PlayerStats({game}) {
         }
       });
 
+      rows.sort((a,b) => (b.ds||0) - (a.ds||0));
+
       if (!rows.length) return <div className="pd"><div style={{fontSize:10,color:'var(--t3)'}}>No position data for this filter</div></div>;
 
       return (
